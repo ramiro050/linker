@@ -1,10 +1,10 @@
 name:                linker
 version:             0.1.0.0
-github:              "githubuser/linker"
+github:              "ramiro050/linker"
 license:             BSD3
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2020 Author name here"
+author:              "Ramiro Leal-Cavazos"
+maintainer:          "ramiroleal050@gmail.com"
+copyright:           "2020 Ramiro Leal-Cavazos"
 
 extra-source-files:
 - README.md
@@ -21,6 +21,7 @@ description:         Please see the README on GitHub at <https://github.com/gith
 
 dependencies:
 - base >= 4.7 && < 5
+- parsec
 
 library:
   source-dirs: src
@@ -46,3 +47,5 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - linker
+    - QuickCheck
+    - hspec
