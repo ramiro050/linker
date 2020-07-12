@@ -1,10 +1,18 @@
 module OrgParser
   ( section,
-    brackets,
-    link ) where
+    orgLink,
+    OrgLink (..),
+    orgLinkToString ) where
 
 import Text.Parsec
 import Text.Parsec.String
+
+data OrgLink = Link String | LinkDesc String String
+  deriving Show
+
+orgLinkToString :: OrgLink -> String
+orgLinkToString (Link l) = "[[" ++ l ++ "]]"
+orgLinkToString (LinkDesc l d) = "[[" ++ l ++ "][" ++ d ++ "]]"
 
 section :: Parser a -> Parser a
 section s = char '*' >> spaces *> s <* spaces
@@ -16,14 +24,16 @@ brackets :: Parser a -> Parser a
 brackets = between (char '[') (char ']')
 
 text :: Parser String
-text = manyTill anyChar $ try (char ']')
+text = manyTill anyChar $ lookAhead (char ']')
 
-link :: Parser (String, String)
-link = brackets ((,) <$> (brackets text) <*> (brackets text))
+orgLink :: Parser OrgLink
+orgLink = brackets $ (try linkDesc) <|> link
+  where
+    link = Link <$> brackets text
+    linkDesc = LinkDesc <$> (brackets text) <*> (brackets text)
 
 testString :: String
 testString = "hello\nworld\n* abcd   \n\nnice stuff"
 
 run :: Parser (String, String)
 run = (,) <$> nextSection <*> many anyChar
-

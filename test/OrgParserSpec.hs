@@ -1,18 +1,10 @@
-module OrgParserSpec
-  (
-  ) where
+module OrgParserSpec where
 
 import OrgParser
 import Text.Parsec
 import Test.QuickCheck
 import Test.Hspec
 import Test.Hspec.QuickCheck
-
-newtype Description = Desc String
-  deriving Show
-
-data OrgLink = Link String | LinkDesc String String
-  deriving Show
 
 linkGen :: Gen String
 linkGen = resize 50 $ listOf (frequency [(15, letter), (10, num), (5, slash), (1, space)])
@@ -29,8 +21,14 @@ instance Arbitrary OrgLink where
   -- arbitrary :: Gen a
   arbitrary = oneof [Link <$> linkGen, LinkDesc <$> linkGen <*> descGen]
 
-orgLinkToString :: OrgLink -> String
-orgLinkToString (Link l) = "[[" ++ l ++ "]]"
-orgLinkToString (LinkDesc l d) = "[[" ++ l ++ "][" ++ d ++ "]]"
+{-
+prop_brackets :: OrgLink -> Bool
+prop_brackets (Link l) =
+  case parse (brackets (string s)) "" bs of
+    Left _ -> False
+    Right s' -> s' == s
+  where bs = "[" ++ s ++ "]"
 
-
+spec :: Spec
+spec = prop "Bracket parser is the inverse of wrapping a string in brackets" prop_brackets
+-}
