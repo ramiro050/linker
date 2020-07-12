@@ -7,33 +7,42 @@ module OrgParser
 import Text.Parsec
 import Text.Parsec.String
 
-data OrgLink = Link String | LinkDesc String String
+data OrgLink = Link String String
   deriving (Show, Eq)
+
+-- |Parsers the link part of an org-mode link, returning the link itself.
+orgLinkArg :: Parser String
+orgLinkArg = many $ (notFollowedBy (char ']')) >> anyChar
+
+-- |Parser the description part of an org-mode link, returning the description.
+--
+-- __Note:__ Org-mode allows square brackets in the description. The description
+-- is only considered finished if it is followed by @]]@.
+orgDescArg :: Parser String
+orgDescArg = many $ (notFollowedBy (string "]]")) >> anyChar
+
+brackets :: Parser a -> Parser a
+brackets = between (char '[') (char ']')
 
 -- |Turn 'OrgLink' into a hyperlink that can be used in an org-mode file
 orgLinkToString :: OrgLink -> String
-orgLinkToString (Link l) = "[[" ++ l ++ "]]"
-orgLinkToString (LinkDesc l d) = "[[" ++ l ++ "][" ++ d ++ "]]"
+orgLinkToString (Link l "") = "[[" ++ l ++ "]]"
+orgLinkToString (Link l d) = "[[" ++ l ++ "][" ++ d ++ "]]"
 
--- |Parsers hyperlinks used in org-mode files:
--- [[link]] or [[link][description]]
+-- |Parses hyperlinks used in org-mode files:
+--
+-- - @[[link]]@ or @[[link][description]]@
 orgLink :: Parser OrgLink
-orgLink = brackets $ (try linkDesc) <|> link
+orgLink = brackets $ Link <$> link <*> desc
   where
-    link = Link <$> brackets text
-    linkDesc = LinkDesc <$> (brackets text) <*> (brackets text)
+    link = brackets orgLinkArg
+    desc = brackets orgDescArg <|> string ""
 
 section :: Parser a -> Parser a
 section s = char '*' >> spaces *> s <* spaces
 
 nextSection :: Parser String
 nextSection = manyTill anyChar $ try (char '*')
-
-brackets :: Parser a -> Parser a
-brackets = between (char '[') (char ']')
-
-text :: Parser String
-text = manyTill anyChar $ lookAhead (char ']')
 
 {-
 testString :: String

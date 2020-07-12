@@ -6,6 +6,7 @@ import Test.QuickCheck
 import Test.Hspec
 import Test.Hspec.QuickCheck
 
+-- |Generator for the link part of an org-mode link.
 linkGen :: Gen String
 linkGen = resize 50 $ listOf (frequency [(15, letter), (10, num), (5, slash), (1, space)])
   where
@@ -14,12 +15,16 @@ linkGen = resize 50 $ listOf (frequency [(15, letter), (10, num), (5, slash), (1
     slash = elements "/"
     space = elements " "
 
+-- |Generator for the description in an org-mode link.
+--
+-- __Note:__ This generator generates empty descriptions half of the time
+-- in order to evenly generate links with and without descriptions.
 descGen :: Gen String
-descGen = resize 30 $ listOf (elements "abcdABCD1234 ")
+descGen = oneof [resize 30 $ listOf1 (elements "abcdABCD1234 "), pure ""]
 
 instance Arbitrary OrgLink where
   -- arbitrary :: Gen a
-  arbitrary = oneof [Link <$> linkGen, LinkDesc <$> linkGen <*> descGen]
+  arbitrary = Link <$> linkGen <*> descGen
 
 prop_parseLinks :: OrgLink -> Property
 prop_parseLinks l =
