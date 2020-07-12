@@ -21,7 +21,6 @@ instance Arbitrary OrgLink where
   -- arbitrary :: Gen a
   arbitrary = oneof [Link <$> linkGen, LinkDesc <$> linkGen <*> descGen]
 
-
 prop_parseLinks :: OrgLink -> Property
 prop_parseLinks l =
   case parse orgLink "" (orgLinkToString l) of
