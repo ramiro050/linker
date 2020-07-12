@@ -8,11 +8,17 @@ import Text.Parsec
 import Text.Parsec.String
 
 data OrgLink = Link String | LinkDesc String String
-  deriving Show
+  deriving (Show, Eq)
 
 orgLinkToString :: OrgLink -> String
 orgLinkToString (Link l) = "[[" ++ l ++ "]]"
 orgLinkToString (LinkDesc l d) = "[[" ++ l ++ "][" ++ d ++ "]]"
+
+orgLink :: Parser OrgLink
+orgLink = brackets $ (try linkDesc) <|> link
+  where
+    link = Link <$> brackets text
+    linkDesc = LinkDesc <$> (brackets text) <*> (brackets text)
 
 section :: Parser a -> Parser a
 section s = char '*' >> spaces *> s <* spaces
@@ -25,12 +31,6 @@ brackets = between (char '[') (char ']')
 
 text :: Parser String
 text = manyTill anyChar $ lookAhead (char ']')
-
-orgLink :: Parser OrgLink
-orgLink = brackets $ (try linkDesc) <|> link
-  where
-    link = Link <$> brackets text
-    linkDesc = LinkDesc <$> (brackets text) <*> (brackets text)
 
 testString :: String
 testString = "hello\nworld\n* abcd   \n\nnice stuff"

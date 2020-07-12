@@ -21,14 +21,12 @@ instance Arbitrary OrgLink where
   -- arbitrary :: Gen a
   arbitrary = oneof [Link <$> linkGen, LinkDesc <$> linkGen <*> descGen]
 
-{-
-prop_brackets :: OrgLink -> Bool
-prop_brackets (Link l) =
-  case parse (brackets (string s)) "" bs of
-    Left _ -> False
-    Right s' -> s' == s
-  where bs = "[" ++ s ++ "]"
+
+prop_parseLinks :: OrgLink -> Property
+prop_parseLinks l =
+  case parse orgLink "" (orgLinkToString l) of
+    Left error -> property False
+    Right l' -> l === l'
 
 spec :: Spec
-spec = prop "Bracket parser is the inverse of wrapping a string in brackets" prop_brackets
--}
+spec = prop "orgLink parser is the left inverse of orgLinkToString" prop_parseLinks
