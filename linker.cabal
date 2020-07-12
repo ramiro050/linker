@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0ac9d28f4e71e4f649cd99d02f36e4ba6f4325ad09810c02c9baeeefbdbf3bff
+-- hash: 0c97878fd52586aeb2a18dd90ed9916f7b1885d3ed78a018dd6212832ba0af6c
 
 name:           linker
 version:        0.1.0.0
@@ -37,9 +37,10 @@ library
   build-depends:
       HDBC
     , HDBC-sqlite3
+    , QuickCheck
     , base >=4.7 && <5
+    , hspec
     , parsec
-    , text
   default-language: Haskell2010
 
 executable linker-exe
@@ -52,10 +53,11 @@ executable linker-exe
   build-depends:
       HDBC
     , HDBC-sqlite3
+    , QuickCheck
     , base >=4.7 && <5
+    , hspec
     , linker
     , parsec
-    , text
   default-language: Haskell2010
 
 test-suite linker-test
@@ -75,5 +77,4 @@ test-suite linker-test
     , hspec
     , linker
     , parsec
-    , text
   default-language: Haskell2010
