@@ -8,6 +8,9 @@ import Database.HDBC.Sqlite3
 dbpath :: String
 dbpath = "../myDB.db"
 
+dbConnection :: IO Connection
+dbConnection = connectSqlite3 dbpath
+
 -- |SQL query to creating a new directory table.
 -- Note: This value is only for internal use
 newDirTable :: String
@@ -26,15 +29,20 @@ newLinksTable =
   \dest_id INTEGER);"
 
 -- |Transaction that creates a directory and links table.
-makeDB :: IConnection conn => conn -> IO ()
-makeDB conn = do
-  dirRowMods <- run conn newDirTable []
-  putStrLn $ "Rows modified for dir table: " ++ (show dirRowMods)
-  linksRowMods <- run conn newLinksTable []
-  putStrLn $ "Rows modified for links table: " ++ (show linksRowMods)
+makeDBTrans :: IConnection conn => conn -> IO ()
+makeDBTrans conn = mapM_ runSimple [newDirTable, newLinksTable]
+  where runSimple s = run conn s []
+
+-- |Make directory and links tables in database given by 'dbConnection'.
+makeDB :: IO ()
+makeDB = do
+  conn <- dbConnection
+  withTransaction conn makeDBTrans
+  disconnect conn
 
 main :: IO ()
 main = do
-  conn <- connectSqlite3 dbpath
-  withTransaction conn makeDB
+  conn <- dbConnection
+  tables <- getTables conn
+  putStrLn (show tables)
   disconnect conn
