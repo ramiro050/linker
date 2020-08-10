@@ -8,10 +8,25 @@ import Text.Parsec
 import Text.Parsec.String
 
 type Description = String
-type Link        = String
+type Link = String
 
 data OrgLink = OrgLink Link Description
   deriving (Show, Eq)
+
+type Header = String
+data OrgFile = OrgFile Header [OrgSection]
+
+type Body = String
+type Title = String
+data OrgSection = OrgSection Title Body
+  deriving Show
+
+
+orgSection :: Parser OrgSection
+orgSection = OrgSection <$> title <*> body
+  where
+    title = string "* " *> manyTill anyChar ((newline >> return ()) <|> eof)
+    body = many $ (notFollowedBy (string "\n* ")) >> anyChar
 
 
 -- |Parsers the link part of an org-mode link, returning the link itself.
@@ -45,10 +60,6 @@ orgLink = brackets $ OrgLink <$> link <*> desc
   where
     link = brackets orgLinkArg
     desc = brackets orgDescArg <|> string ""
-
-
-section :: Parser a -> Parser a
-section s = char '*' >> spaces *> s <* spaces
 
 
 nextSection :: Parser String

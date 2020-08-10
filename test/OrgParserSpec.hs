@@ -42,5 +42,4 @@ prop_parseLinks l =
 
 
 spec :: Spec
-spec = do
-  prop "orgLink parser is the left inverse of orgLinkToString" prop_parseLinks
+spec = prop "orgLink parser is the left inverse of orgLinkToString" prop_parseLinks
