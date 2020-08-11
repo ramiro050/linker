@@ -1,7 +1,10 @@
 module OrgParser
   ( orgLink,
     OrgLink (..),
-    orgLinkToString ) where
+    orgLinkToString,
+    orgSection,
+    OrgSection (..),
+    orgSectionToString ) where
 
 import Text.Parsec
 import Text.Parsec.String
@@ -18,18 +21,21 @@ data OrgFile = OrgFile Header [OrgSection]
 type Body = String
 type Title = String
 data OrgSection = OrgSection Title Body
-  deriving Show
+  deriving (Show, Eq)
 
 
 -- |Parses a whole org section, returning an @OrgSection@.
 orgSection :: Parser OrgSection
 orgSection = do
-  char '*'
-  space
+  string "* "
   title <- many $ notFollowedBy newline >> anyChar
   skipMany newline
-  body <- many $ notFollowedBy (many newline >> char '*' >> space) >> anyChar
+  body <- many $ notFollowedBy (many1 newline >> string "* ") >> anyChar
   return $ OrgSection title body
+
+
+orgSectionToString :: OrgSection -> String
+orgSectionToString (OrgSection t b) = "* " ++ t ++ "\n" ++ b
 
 
 -- |Parses the link part of an org-mode link, returning the link itself.

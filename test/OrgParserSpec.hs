@@ -34,6 +34,24 @@ instance Arbitrary OrgLink where
   arbitrary = OrgLink <$> linkGen <*> descGen
 
 
+titleGen :: Gen String
+titleGen = resize 30 $ listOf (elements "abcdABCD1234 ")
+
+
+bodyGen :: Gen String
+bodyGen = body `suchThat` validBody
+  where
+    body = resize 200 $ listOf (elements "abcABC123!* \n")
+    validBody s = not $ ("\n" `isPrefixOf` s ||
+                         "\n* " `isInfixOf` s ||
+                         "\n" `isSuffixOf` s)
+
+
+instance Arbitrary OrgSection where
+  -- arbitrary :: Gen a
+  arbitrary = OrgSection <$> titleGen <*> bodyGen
+
+
 prop_parseLinks :: OrgLink -> Property
 prop_parseLinks l =
   case parse orgLink "" (orgLinkToString l) of
@@ -41,5 +59,14 @@ prop_parseLinks l =
     Right l' -> l === l'
 
 
+prop_parseSections :: OrgSection -> Property
+prop_parseSections s =
+  case parse orgSection "" (orgSectionToString s) of
+    Left error -> property False
+    Right s' -> s === s'
+
+
 spec :: Spec
-spec = prop "orgLink parser is the left inverse of orgLinkToString" prop_parseLinks
+spec = do
+  prop "orgLink parser is the left inverse of orgLinkToString" prop_parseLinks
+  prop "orgSection parser is the left inverse of orgSectionToString" prop_parseSections
