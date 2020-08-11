@@ -24,6 +24,13 @@ data OrgSection = OrgSection Title Body
   deriving (Show, Eq)
 
 
+-- |Parses an org file, retuning an @OrgFile@ structure.
+orgFile :: Parser OrgFile
+orgFile = OrgFile <$> header <*> many orgSection
+  where
+    header =  many $ notFollowedBy (many1 newline >> string "* ") >> anyChar
+
+
 -- |Parses a whole org section, returning an @OrgSection@.
 orgSection :: Parser OrgSection
 orgSection = do
