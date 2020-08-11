@@ -1,6 +1,5 @@
 module OrgParser
-  ( section,
-    orgLink,
+  ( orgLink,
     OrgLink (..),
     orgLinkToString ) where
 
@@ -22,14 +21,18 @@ data OrgSection = OrgSection Title Body
   deriving Show
 
 
+-- |Parses a whole org section, returning an @OrgSection@.
 orgSection :: Parser OrgSection
-orgSection = OrgSection <$> title <*> body
-  where
-    title = string "* " *> manyTill anyChar ((newline >> return ()) <|> eof)
-    body = many $ (notFollowedBy (string "\n* ")) >> anyChar
+orgSection = do
+  char '*'
+  space
+  title <- many $ notFollowedBy newline >> anyChar
+  skipMany newline
+  body <- many $ notFollowedBy (many newline >> char '*' >> space) >> anyChar
+  return $ OrgSection title body
 
 
--- |Parsers the link part of an org-mode link, returning the link itself.
+-- |Parses the link part of an org-mode link, returning the link itself.
 orgLinkArg :: Parser Link
 orgLinkArg = many $ (notFollowedBy (char ']')) >> anyChar
 
@@ -42,10 +45,6 @@ orgDescArg :: Parser Description
 orgDescArg = many $ (notFollowedBy (string "]]")) >> anyChar
 
 
-brackets :: Parser a -> Parser a
-brackets = between (char '[') (char ']')
-
-
 -- |Turn 'OrgLink' into a hyperlink that can be used in an org-mode file
 orgLinkToString :: OrgLink -> String
 orgLinkToString (OrgLink l "") = "[[" ++ l ++ "]]"
@@ -56,19 +55,8 @@ orgLinkToString (OrgLink l d) = "[[" ++ l ++ "][" ++ d ++ "]]"
 -- |
 -- |- @[[link]]@ or @[[link][description]]@
 orgLink :: Parser OrgLink
-orgLink = brackets $ OrgLink <$> link <*> desc
+orgLink = brackets $ OrgLink <$> bLink <*> bDesc
   where
-    link = brackets orgLinkArg
-    desc = brackets orgDescArg <|> string ""
-
-
-nextSection :: Parser String
-nextSection = manyTill anyChar $ try (char '*')
-
-{-
-testString :: String
-testString = "hello\nworld\n* abcd   \n\nnice stuff"
-
-run :: Parser (String, String)
-run = (,) <$> nextSection <*> many anyChar
--}
+    brackets = between (char '[') (char ']')
+    bLink = brackets orgLinkArg
+    bDesc = brackets orgDescArg <|> string ""
