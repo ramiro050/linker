@@ -28,7 +28,7 @@ data OrgSection = OrgSection Title Body
 orgFile :: Parser OrgFile
 orgFile = OrgFile <$> header <*> many orgSection
   where
-    header =  many $ notFollowedBy (many1 newline >> string "* ") >> anyChar
+    header = many $ notFollowedBy (many1 newline >> string "* ") >> anyChar
 
 
 -- |Parses a whole org section, returning an @OrgSection@.
@@ -73,3 +73,10 @@ orgLink = brackets $ OrgLink <$> bLink <*> bDesc
     brackets = between (char '[') (char ']')
     bLink = brackets orgLinkArg
     bDesc = brackets orgDescArg <|> string ""
+
+
+-- |Extracts org links from a paragraph of text.
+getOrgLinks :: String -> [OrgLink]
+getOrgLinks = sepEndBy orgLink notLink
+  where
+    notLink = many $ (notFollowedBy (string "[[")) >> anyChar
