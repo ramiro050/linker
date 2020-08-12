@@ -76,7 +76,7 @@ orgLink = brackets $ OrgLink <$> bLink <*> bDesc
 
 
 -- |Extracts org links from a paragraph of text.
-getOrgLinks :: String -> [OrgLink]
-getOrgLinks = sepEndBy orgLink notLink
+orgLinks :: Parser [OrgLink]
+orgLinks = sepEndBy orgLink notLink
   where
     notLink = many $ (notFollowedBy (string "[[")) >> anyChar
