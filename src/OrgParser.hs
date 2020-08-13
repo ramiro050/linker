@@ -22,7 +22,9 @@ type Title = String
 data OrgSection = OrgSection Title Body
   deriving (Show, Eq)
 
-data OrgFile2 = OrgFile2 [OrgObject2]
+--------------------------------------------------------------------------------
+
+data OrgFile2 = OrgFile2 [OrgObject]
 
 instance Monoid OrgFile2 where
   -- mempty :: a
@@ -32,9 +34,13 @@ instance Semigroup OrgFile2 where
   -- (<>) :: a -> a -> a
   (OrgFile2 xs) <> (OrgFile2 ys) = OrgFile2 (xs ++ ys)
 
-data OrgObject2 = OrgTitle OrgInline
+--------------------------------------------------------------------------------
+
+data OrgObject = OrgTitle OrgInline
                 | OrgPara [OrgInline]
                 | OrgList [OrgInline]
+
+--------------------------------------------------------------------------------
 
 data OrgInline = OrgStr String
                | OrgLink Link Description
@@ -46,6 +52,8 @@ instance Org OrgInline where
 
   -- orgShow :: ob -> String
   orgShow (OrgStr s) = s
+
+--------------------------------------------------------------------------------
 
   -- |Turn 'OrgLink' into a hyperlink that can be used in an org-mode file
   orgShow (OrgLink l "") = "[[" ++ l ++ "]]"
@@ -71,6 +79,7 @@ orgSection = do
 orgSectionToString :: OrgSection -> String
 orgSectionToString (OrgSection t b) = "* " ++ t ++ "\n" ++ b
 
+--------------------------------------------------------------------------------
 
 -- |Parses the link part of an org-mode link, returning the link itself.
 orgLinkArg :: Parser Link
@@ -96,13 +105,6 @@ orgLink = brackets $ OrgLink <$> bLink <*> bDesc
     bDesc = brackets orgDescArg <|> string ""
 
 
--- |Extracts org links from a paragraph of text.
-orgLinks :: Parser [OrgInline]
-orgLinks = sepEndBy orgLink notLink
-  where
-    notLink = many $ (notFollowedBy (string "[[")) >> anyChar
-
-
 orgStr :: Parser OrgInline
 orgStr = OrgStr <$> (many notLinkChar)
   where
@@ -111,3 +113,15 @@ orgStr = OrgStr <$> (many notLinkChar)
 
 orgInline :: Parser OrgInline
 orgInline = try orgLink <|> orgStr
+
+--------------------------------------------------------------------------------
+
+-- |Extracts org links from a paragraph of text.
+orgLinks :: Parser [OrgInline]
+orgLinks = sepEndBy orgLink notLink
+  where
+    notLink = many $ (notFollowedBy (string "[[")) >> anyChar
+
+
+orgTitle :: Parser OrgObject
+orgTitle = OrgTitle <$> (string "* " >> orgInline)
