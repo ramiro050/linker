@@ -8,7 +8,7 @@ import Text.Parsec
 import Text.Parsec.String
 
 class Org ob where
-  orgRead :: String -> Either String ob
+  orgRead :: String -> Either ParseError ob
   orgShow :: ob -> String
 
 type Description = String
@@ -38,10 +38,11 @@ data OrgObject2 = OrgTitle OrgInline
 
 data OrgInline = OrgStr String
                | OrgLink Link Description
+  deriving Show
 
 instance Org OrgInline where
-  -- orgRead :: String -> Either String ob
-  orgRead s = undefined
+  -- orgRead :: String -> Either ParseError ob
+  orgRead = parse orgInline ""
 
   -- orgShow :: ob -> String
   orgShow (OrgStr s) = s
