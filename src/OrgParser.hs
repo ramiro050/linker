@@ -9,6 +9,10 @@ module OrgParser
 import Text.Parsec
 import Text.Parsec.String
 
+class Org ob where
+  orgRead :: String -> Either String ob
+  orgShow :: ob -> String
+
 type Description = String
 type Link = String
 
@@ -23,6 +27,22 @@ type Title = String
 data OrgSection = OrgSection Title Body
   deriving (Show, Eq)
 
+data OrgFile2 = OrgFile2 [OrgObject2]
+
+instance Monoid OrgFile2 where
+  -- mempty :: a
+  mempty = OrgFile2 []
+
+instance Semigroup OrgFile2 where
+  -- (<>) :: a -> a -> a
+  (OrgFile2 xs) <> (OrgFile2 ys) = OrgFile2 (xs ++ ys)
+
+data OrgObject2 = OrgTitle OrgInline
+                | OrgPara [OrgInline]
+                | OrgList [OrgInline]
+
+data OrgInline = OrgStr String
+               | OrgLink2 Link Description
 
 -- |Parses an org file, retuning an @OrgFile@ structure.
 orgFile :: Parser OrgFile
