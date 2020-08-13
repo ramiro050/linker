@@ -1,7 +1,5 @@
 module OrgParser
-  ( orgLink,
-    OrgLink (..),
-    orgLinkToString,
+  (
     orgSection,
     OrgSection (..),
     orgSectionToString ) where
@@ -15,9 +13,6 @@ class Org ob where
 
 type Description = String
 type Link = String
-
-data OrgLink = OrgLink Link Description
-  deriving (Show, Eq)
 
 type Header = String
 data OrgFile = OrgFile Header [OrgSection]
@@ -42,7 +37,18 @@ data OrgObject2 = OrgTitle OrgInline
                 | OrgList [OrgInline]
 
 data OrgInline = OrgStr String
-               | OrgLink2 Link Description
+               | OrgLink Link Description
+
+instance Org OrgInline where
+  -- orgRead :: String -> Either String ob
+  orgRead s = undefined
+
+  -- orgShow :: ob -> String
+  orgShow (OrgStr s) = s
+
+  -- |Turn 'OrgLink' into a hyperlink that can be used in an org-mode file
+  orgShow (OrgLink l "") = "[[" ++ l ++ "]]"
+  orgShow (OrgLink l d) = "[[" ++ l ++ "][" ++ d ++ "]]"
 
 -- |Parses an org file, retuning an @OrgFile@ structure.
 orgFile :: Parser OrgFile
@@ -78,16 +84,10 @@ orgDescArg :: Parser Description
 orgDescArg = many $ (notFollowedBy (string "]]")) >> anyChar
 
 
--- |Turn 'OrgLink' into a hyperlink that can be used in an org-mode file
-orgLinkToString :: OrgLink -> String
-orgLinkToString (OrgLink l "") = "[[" ++ l ++ "]]"
-orgLinkToString (OrgLink l d) = "[[" ++ l ++ "][" ++ d ++ "]]"
-
-
 -- |Parses hyperlinks used in org-mode files:
 -- |
 -- |- @[[link]]@ or @[[link][description]]@
-orgLink :: Parser OrgLink
+orgLink :: Parser OrgInline
 orgLink = brackets $ OrgLink <$> bLink <*> bDesc
   where
     brackets = between (char '[') (char ']')
@@ -96,7 +96,16 @@ orgLink = brackets $ OrgLink <$> bLink <*> bDesc
 
 
 -- |Extracts org links from a paragraph of text.
-orgLinks :: Parser [OrgLink]
+orgLinks :: Parser [OrgInline]
 orgLinks = sepEndBy orgLink notLink
   where
     notLink = many $ (notFollowedBy (string "[[")) >> anyChar
+
+
+orgStr :: Parser OrgInline
+orgStr = OrgStr <$> notLink
+  where notLink = many $ (notFollowedBy (string "[[")) >> anyChar
+
+
+orgInline :: Parser OrgInline
+orgInline = try orgLink <|> orgStr
