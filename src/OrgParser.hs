@@ -103,8 +103,9 @@ orgLinks = sepEndBy orgLink notLink
 
 
 orgStr :: Parser OrgInline
-orgStr = OrgStr <$> notLink
-  where notLink = many $ (notFollowedBy (string "[[")) >> anyChar
+orgStr = OrgStr <$> (many notLinkChar)
+  where
+    notLinkChar = notFollowedBy (string "[[") >> anyChar
 
 
 orgInline :: Parser OrgInline
