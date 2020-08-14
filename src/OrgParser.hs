@@ -37,8 +37,8 @@ instance Semigroup OrgFile2 where
 --------------------------------------------------------------------------------
 
 data OrgObject = OrgTitle OrgInline
-                | OrgPara [OrgInline]
-                | OrgList [OrgInline]
+               | OrgPara [OrgInline]
+               | OrgList [OrgInline]
   deriving Show
 
 --------------------------------------------------------------------------------
@@ -63,8 +63,7 @@ instance Org OrgInline where
 -- |Parses an org file, retuning an @OrgFile@ structure.
 orgFile :: Parser OrgFile
 orgFile = OrgFile <$> header <*> many orgSection
-  where
-    header = many $ notFollowedBy (many1 newline >> string "* ") >> anyChar
+  where header = many $ notFollowedBy (many1 newline >> string "* ") >> anyChar
 
 
 -- |Parses a whole org section, returning an @OrgSection@.
@@ -108,8 +107,7 @@ orgLink = brackets $ OrgLink <$> bLink <*> bDesc
 
 orgStr :: Parser OrgInline
 orgStr = OrgStr <$> (many notLinkChar)
-  where
-    notLinkChar = notFollowedBy orgLink >> anyChar
+  where notLinkChar = notFollowedBy orgLink >> anyChar
 
 
 orgInline :: Parser OrgInline
@@ -129,3 +127,8 @@ orgTitle = OrgTitle <$> (string "* " >> orgInline)
 orgPara :: Parser OrgObject
 orgPara = OrgPara <$> para
   where para = many $ notFollowedBy orgTitle >> orgInline
+
+
+orgList :: Parser OrgObject
+orgList = OrgList <$> obs
+  where obs = many $ string "- " >> orgInline
