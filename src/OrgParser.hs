@@ -108,7 +108,7 @@ orgLink = brackets $ OrgLink <$> bLink <*> bDesc
 orgStr :: Parser OrgInline
 orgStr = OrgStr <$> (many notLinkChar)
   where
-    notLinkChar = notFollowedBy (string "[[") >> anyChar
+    notLinkChar = notFollowedBy orgLink >> anyChar
 
 
 orgInline :: Parser OrgInline
@@ -118,10 +118,13 @@ orgInline = try orgLink <|> orgStr
 
 -- |Extracts org links from a paragraph of text.
 orgLinks :: Parser [OrgInline]
-orgLinks = sepEndBy orgLink notLink
-  where
-    notLink = many $ (notFollowedBy (string "[[")) >> anyChar
+orgLinks = sepEndBy orgLink orgStr
 
 
 orgTitle :: Parser OrgObject
 orgTitle = OrgTitle <$> (string "* " >> orgInline)
+
+
+--orgPara :: Parser OrgObject
+--orgPara = OrgPara <$> para
+--  where para = many $ notFollowedBy orgTitle >> orgInline
