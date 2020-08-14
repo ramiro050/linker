@@ -1,18 +1,18 @@
 module OrgParser
-  (
-    orgSection,
+  ( orgSection,
     OrgSection (..),
-    orgSectionToString ) where
+    OrgObject (..),
+    OrgInline (..),
+    Org,
+    orgLink) where
 
 import Text.Parsec
 import Text.Parsec.String
+import Data.List (intercalate)
 
 class Org ob where
   orgRead :: String -> Either ParseError ob
   orgShow :: ob -> String
-
-type Description = String
-type Link = String
 
 type Header = String
 data OrgFile = OrgFile Header [OrgSection]
@@ -41,7 +41,19 @@ data OrgObject = OrgTitle OrgInline
                | OrgList [OrgInline]
   deriving Show
 
+instance Org OrgObject where
+  -- orgRead :: String -> Either ParseError ob
+  orgRead = parse orgObject ""
+
+  -- orgShow :: ob -> String
+  orgShow (OrgTitle t) = "* " ++ orgShow t
+  orgShow (OrgPara inls) = intercalate " " (orgShow <$> inls)
+  orgShow (OrgList inls) = "- " ++ (intercalate "\n- " (orgShow <$> inls))
+
 --------------------------------------------------------------------------------
+
+type Description = String
+type Link = String
 
 data OrgInline = OrgStr String
                | OrgLink Link Description
@@ -54,11 +66,10 @@ instance Org OrgInline where
   -- orgShow :: ob -> String
   orgShow (OrgStr s) = s
 
---------------------------------------------------------------------------------
-
-  -- |Turn 'OrgLink' into a hyperlink that can be used in an org-mode file
   orgShow (OrgLink l "") = "[[" ++ l ++ "]]"
   orgShow (OrgLink l d) = "[[" ++ l ++ "][" ++ d ++ "]]"
+
+--------------------------------------------------------------------------------
 
 -- |Parses an org file, retuning an @OrgFile@ structure.
 orgFile :: Parser OrgFile
@@ -132,3 +143,7 @@ orgPara = OrgPara <$> para
 orgList :: Parser OrgObject
 orgList = OrgList <$> obs
   where obs = many $ string "- " >> orgInline
+
+
+orgObject :: Parser OrgObject
+orgObject = orgTitle <|> orgList <|> orgPara
