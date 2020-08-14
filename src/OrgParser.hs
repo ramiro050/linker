@@ -39,6 +39,7 @@ instance Semigroup OrgFile2 where
 data OrgObject = OrgTitle OrgInline
                 | OrgPara [OrgInline]
                 | OrgList [OrgInline]
+  deriving Show
 
 --------------------------------------------------------------------------------
 
@@ -125,6 +126,6 @@ orgTitle :: Parser OrgObject
 orgTitle = OrgTitle <$> (string "* " >> orgInline)
 
 
---orgPara :: Parser OrgObject
---orgPara = OrgPara <$> para
---  where para = many $ notFollowedBy orgTitle >> orgInline
+orgPara :: Parser OrgObject
+orgPara = OrgPara <$> para
+  where para = many $ notFollowedBy orgTitle >> orgInline
