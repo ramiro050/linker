@@ -1,7 +1,5 @@
 module OrgParser
-  ( orgSection,
-    OrgSection (..),
-    OrgObject (..),
+  ( OrgObject (..),
     OrgInline (..),
     Org (..),
     orgLink) where
@@ -13,14 +11,6 @@ import Data.List (intercalate)
 class Org ob where
   orgRead :: String -> Either ParseError ob
   orgShow :: ob -> String
-
-type Header = String
-data OrgFile = OrgFile Header [OrgSection]
-
-type Body = String
-type Title = String
-data OrgSection = OrgSection Title Body
-  deriving (Show, Eq)
 
 --------------------------------------------------------------------------------
 
@@ -68,27 +58,6 @@ instance Org OrgInline where
 
   orgShow (OrgLink l "") = "[[" ++ l ++ "]]"
   orgShow (OrgLink l d) = "[[" ++ l ++ "][" ++ d ++ "]]"
-
---------------------------------------------------------------------------------
-
--- |Parses an org file, retuning an @OrgFile@ structure.
-orgFile :: Parser OrgFile
-orgFile = OrgFile <$> header <*> many orgSection
-  where header = many $ notFollowedBy (many1 newline >> string "* ") >> anyChar
-
-
--- |Parses a whole org section, returning an @OrgSection@.
-orgSection :: Parser OrgSection
-orgSection = do
-  string "* "
-  title <- many $ notFollowedBy newline >> anyChar
-  skipMany newline
-  body <- many $ notFollowedBy (many1 newline >> string "* ") >> anyChar
-  return $ OrgSection title body
-
-
-orgSectionToString :: OrgSection -> String
-orgSectionToString (OrgSection t b) = "* " ++ t ++ "\n" ++ b
 
 --------------------------------------------------------------------------------
 

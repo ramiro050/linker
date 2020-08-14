@@ -49,11 +49,6 @@ bodyGen = body `suchThat` validBody
                          "\n" `isSuffixOf` s)
 
 
-instance Arbitrary OrgSection where
-  -- arbitrary :: Gen a
-  arbitrary = OrgSection <$> titleGen <*> bodyGen
-
-
 prop_parseLinks :: OrgLink -> Property
 prop_parseLinks l =
   case parse orgLink "" (orgShow (getOrgLink l)) of
