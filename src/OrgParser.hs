@@ -3,7 +3,7 @@ module OrgParser
     OrgSection (..),
     OrgObject (..),
     OrgInline (..),
-    Org,
+    Org (..),
     orgLink) where
 
 import Text.Parsec
@@ -57,7 +57,7 @@ type Link = String
 
 data OrgInline = OrgStr String
                | OrgLink Link Description
-  deriving Show
+  deriving (Show, Eq)
 
 instance Org OrgInline where
   -- orgRead :: String -> Either ParseError ob

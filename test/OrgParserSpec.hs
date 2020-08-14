@@ -28,10 +28,12 @@ descGen = oneof [descString `suchThat` validRightBrackets, pure ""]
     descString = resize 30 $ listOf1 (elements "abcdABCD1234 []")
     validRightBrackets s = not $ ("]]" `isInfixOf` s || "]" `isSuffixOf` s)
 
+newtype OrgLink = OL {getOrgLink :: OrgInline}
+  deriving Show
 
 instance Arbitrary OrgLink where
   -- arbitrary :: Gen a
-  arbitrary = OrgLink <$> linkGen <*> descGen
+  arbitrary = OL <$> (OrgLink <$> linkGen <*> descGen)
 
 
 titleGen :: Gen String
@@ -54,19 +56,11 @@ instance Arbitrary OrgSection where
 
 prop_parseLinks :: OrgLink -> Property
 prop_parseLinks l =
-  case parse orgLink "" (orgLinkToString l) of
+  case parse orgLink "" (orgShow (getOrgLink l)) of
     Left error -> property False
-    Right l' -> l === l'
-
-
-prop_parseSections :: OrgSection -> Property
-prop_parseSections s =
-  case parse orgSection "" (orgSectionToString s) of
-    Left error -> property False
-    Right s' -> s === s'
+    Right l' -> (getOrgLink l) === l'
 
 
 spec :: Spec
 spec = do
   prop "orgLink parser is the left inverse of orgLinkToString" prop_parseLinks
-  prop "orgSection parser is the left inverse of orgSectionToString" prop_parseSections
